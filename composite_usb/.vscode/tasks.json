@@ -1,0 +1,26 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "iar",
+			"command": "build",
+			"project": "${command:iar-settings.project-file}",
+			"config": "${command:iar-settings.project-configuration}",
+			"builder": "${command:iar-settings.workbench}/common/bin/IarBuild.exe",
+			"label": "iar: Iar Build",
+			"problemMatcher": [
+				"$iar-cc",
+				"$iar-linker"
+			]
+		},
+		{
+			"type": "iar-cstat",
+			"label": "iar-cstat: Run C-STAT Analysis",
+			"action": "run",
+			"project": "${command:iar-settings.project-file}",
+			"config": "${command:iar-settings.project-configuration}",
+			"builder": "${command:iar-settings.workbench}/common/bin/IarBuild.exe",
+			"problemMatcher": []
+		}
+	]
+}

@@ -116,6 +116,16 @@ extern USBD_ClassTypeDef USBD_HID;
 /** @defgroup USB_CORE_Exported_Functions
   * @{
   */
+#ifndef _IRS_EXPORTED_
+#define _IRS_EXPORTED_
+#endif // _IRS_EXPORTED_
+
+_IRS_EXPORTED_ uint8_t USBD_HID_Init(USBD_HandleTypeDef *pdev, uint8_t cfgidx);
+_IRS_EXPORTED_ uint8_t USBD_HID_DeInit(USBD_HandleTypeDef *pdev, uint8_t cfgidx);
+
+_IRS_EXPORTED_ uint8_t USBD_HID_Setup(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req);
+_IRS_EXPORTED_ uint8_t USBD_HID_DataIn(USBD_HandleTypeDef *pdev, uint8_t epnum);
+
 uint8_t USBD_HID_SendReport(USBD_HandleTypeDef *pdev, uint8_t *report,uint16_t len);
 uint32_t USBD_HID_GetPollingInterval(USBD_HandleTypeDef *pdev);
 

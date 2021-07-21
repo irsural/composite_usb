@@ -59,6 +59,9 @@ EndBSPDependencies */
 #include "usbd_cdc.h"
 #include "usbd_ctlreq.h"
 
+#ifndef _IRS_COMPOSITE_
+#define _IRS_COMPOSITE_
+#endif // _IRS_COMPOSITE_
 
 /** @addtogroup STM32_USB_DEVICE_LIBRARY
   * @{
@@ -98,13 +101,12 @@ EndBSPDependencies */
 /** @defgroup USBD_CDC_Private_FunctionPrototypes
   * @{
   */
-
-static uint8_t USBD_CDC_Init(USBD_HandleTypeDef *pdev, uint8_t cfgidx);
-static uint8_t USBD_CDC_DeInit(USBD_HandleTypeDef *pdev, uint8_t cfgidx);
-static uint8_t USBD_CDC_Setup(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req);
-static uint8_t USBD_CDC_DataIn(USBD_HandleTypeDef *pdev, uint8_t epnum);
-static uint8_t USBD_CDC_DataOut(USBD_HandleTypeDef *pdev, uint8_t epnum);
-static uint8_t USBD_CDC_EP0_RxReady(USBD_HandleTypeDef *pdev);
+// static uint8_t USBD_CDC_Init(USBD_HandleTypeDef *pdev, uint8_t cfgidx);
+// static uint8_t USBD_CDC_DeInit(USBD_HandleTypeDef *pdev, uint8_t cfgidx);
+// static uint8_t USBD_CDC_Setup(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req);
+// static uint8_t USBD_CDC_DataIn(USBD_HandleTypeDef *pdev, uint8_t epnum);
+// static uint8_t USBD_CDC_DataOut(USBD_HandleTypeDef *pdev, uint8_t epnum);
+// static uint8_t USBD_CDC_EP0_RxReady(USBD_HandleTypeDef *pdev);
 
 static uint8_t *USBD_CDC_GetFSCfgDesc(uint16_t *length);
 static uint8_t *USBD_CDC_GetHSCfgDesc(uint16_t *length);
@@ -453,7 +455,7 @@ __ALIGN_BEGIN static uint8_t USBD_CDC_OtherSpeedCfgDesc[USB_CDC_CONFIG_DESC_SIZ]
   * @param  cfgidx: Configuration index
   * @retval status
   */
-static uint8_t USBD_CDC_Init(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
+uint8_t USBD_CDC_Init(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
 {
   UNUSED(cfgidx);
   USBD_CDC_HandleTypeDef *hcdc;
@@ -462,11 +464,19 @@ static uint8_t USBD_CDC_Init(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
 
   if (hcdc == NULL)
   {
+#ifdef _IRS_COMPOSITE_
+    pdev->pClassDataCDC = NULL;
+#else
     pdev->pClassData = NULL;
+#endif // _IRS_COMPOSITE_
     return (uint8_t)USBD_EMEM;
   }
 
+#ifdef _IRS_COMPOSITE_
+  pdev->pClassDataCDC = (void*) hcdc;
+#else
   pdev->pClassData = (void *)hcdc;
+#endif // _IRS_COMPOSITE_
 
   if (pdev->dev_speed == USBD_SPEED_HIGH)
   {
@@ -508,7 +518,11 @@ static uint8_t USBD_CDC_Init(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
   pdev->ep_in[CDC_CMD_EP & 0xFU].is_used = 1U;
 
   /* Init  physical Interface components */
+#ifdef _IRS_COMPOSITE_
+  pdev->pClassSpecificInterfaceCDC->Init();
+#else
   ((USBD_CDC_ItfTypeDef *)pdev->pUserData)->Init();
+#endif // _IRS_COMPOSITE_
 
   /* Init Xfer states */
   hcdc->TxState = 0U;
@@ -537,7 +551,7 @@ static uint8_t USBD_CDC_Init(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
   * @param  cfgidx: Configuration index
   * @retval status
   */
-static uint8_t USBD_CDC_DeInit(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
+uint8_t USBD_CDC_DeInit(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
 {
   UNUSED(cfgidx);
   uint8_t ret = 0U;
@@ -556,12 +570,20 @@ static uint8_t USBD_CDC_DeInit(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
   pdev->ep_in[CDC_CMD_EP & 0xFU].bInterval = 0U;
 
   /* DeInit  physical Interface components */
+#ifdef _IRS_COMPOSITE_
+  if (pdev->pClassDataCDC != NULL) {
+    pdev->pClassSpecificInterfaceCDC->DeInit();
+    (void) USBD_free(pdev->pClassDataCDC);
+    pdev->pClassDataCDC = NULL;
+  }
+#else
   if (pdev->pClassData != NULL)
   {
     ((USBD_CDC_ItfTypeDef *)pdev->pUserData)->DeInit();
     (void)USBD_free(pdev->pClassData);
     pdev->pClassData = NULL;
   }
+#endif // _ISR_COMPOSITE_
 
   return ret;
 }
@@ -573,10 +595,15 @@ static uint8_t USBD_CDC_DeInit(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
   * @param  req: usb requests
   * @retval status
   */
-static uint8_t USBD_CDC_Setup(USBD_HandleTypeDef *pdev,
+uint8_t USBD_CDC_Setup(USBD_HandleTypeDef *pdev,
                               USBD_SetupReqTypedef *req)
 {
+#ifdef _IRS_COMPOSITE_
+  USBD_CDC_HandleTypeDef* hcdc = pdev->pClassDataCDC;
+#else
   USBD_CDC_HandleTypeDef *hcdc = (USBD_CDC_HandleTypeDef *)pdev->pClassData;
+#endif // _IRS_COMPOSITE_
+
   uint8_t ifalt = 0U;
   uint16_t status_info = 0U;
   USBD_StatusTypeDef ret = USBD_OK;
@@ -588,10 +615,13 @@ static uint8_t USBD_CDC_Setup(USBD_HandleTypeDef *pdev,
     {
       if ((req->bmRequest & 0x80U) != 0U)
       {
+#ifdef _IRS_COMPOSITE_
+        pdev->pClassSpecificInterfaceCDC->Control(req->bmRequest, (uint8_t*) hcdc->data, req->wLength);
+#else
         ((USBD_CDC_ItfTypeDef *)pdev->pUserData)->Control(req->bRequest,
                                                           (uint8_t *)hcdc->data,
                                                           req->wLength);
-
+#endif // _IRS_COMPOSITE_USB;
           (void)USBD_CtlSendData(pdev, (uint8_t *)hcdc->data, req->wLength);
       }
       else
@@ -604,8 +634,12 @@ static uint8_t USBD_CDC_Setup(USBD_HandleTypeDef *pdev,
     }
     else
     {
+#ifdef _IRS_COMPOSITE_
+  pdev->pClassSpecificInterfaceCDC->Control(req->bRequest, (uint8_t*) req, 0U);
+#else
       ((USBD_CDC_ItfTypeDef *)pdev->pUserData)->Control(req->bRequest,
                                                         (uint8_t *)req, 0U);
+#endif // _IRS_COMPOSITE_
     }
     break;
 
@@ -670,17 +704,25 @@ static uint8_t USBD_CDC_Setup(USBD_HandleTypeDef *pdev,
   * @param  epnum: endpoint number
   * @retval status
   */
-static uint8_t USBD_CDC_DataIn(USBD_HandleTypeDef *pdev, uint8_t epnum)
+uint8_t USBD_CDC_DataIn(USBD_HandleTypeDef *pdev, uint8_t epnum)
 {
   USBD_CDC_HandleTypeDef *hcdc;
   PCD_HandleTypeDef *hpcd = pdev->pData;
 
+#ifdef _IRS_COMPOSITE_
+  if (pdev->pClassDataCDC == NULL) {
+    return (uint8_t) USBD_FAIL;
+  }
+  
+  hcdc = pdev->pClassDataCDC;
+#else
   if (pdev->pClassData == NULL)
   {
     return (uint8_t)USBD_FAIL;
   }
 
   hcdc = (USBD_CDC_HandleTypeDef *)pdev->pClassData;
+#endif // _IRS_COMPOSITE
 
   if ((pdev->ep_in[epnum].total_length > 0U) &&
       ((pdev->ep_in[epnum].total_length % hpcd->IN_ep[epnum].maxpacket) == 0U))
@@ -694,7 +736,11 @@ static uint8_t USBD_CDC_DataIn(USBD_HandleTypeDef *pdev, uint8_t epnum)
   else
   {
     hcdc->TxState = 0U;
+#ifdef _IRS_COMPOSITE_
+  pdev->pClassSpecificInterfaceCDC->TransmitCplt(hcdc->TxBuffer, &hcdc->TxLength, epnum);
+#else
     ((USBD_CDC_ItfTypeDef *)pdev->pUserData)->TransmitCplt(hcdc->TxBuffer, &hcdc->TxLength, epnum);
+#endif // _IRS_COMPOSITE_
   }
 
   return (uint8_t)USBD_OK;
@@ -707,22 +753,33 @@ static uint8_t USBD_CDC_DataIn(USBD_HandleTypeDef *pdev, uint8_t epnum)
   * @param  epnum: endpoint number
   * @retval status
   */
-static uint8_t USBD_CDC_DataOut(USBD_HandleTypeDef *pdev, uint8_t epnum)
+uint8_t USBD_CDC_DataOut(USBD_HandleTypeDef *pdev, uint8_t epnum)
 {
+#ifdef _IRS_COMPOSITE_
+  USBD_CDC_HandleTypeDef* hcdc = pdev->pClassDataCDC;
+
+  if (pdev->pClassDataCDC == NULL) {
+    return (uint8_t) USBD_FAIL;
+  }
+#else
   USBD_CDC_HandleTypeDef *hcdc = (USBD_CDC_HandleTypeDef *)pdev->pClassData;
 
   if (pdev->pClassData == NULL)
   {
     return (uint8_t)USBD_FAIL;
   }
+#endif // _IRS_COMPOSITE_
 
   /* Get the received data length */
   hcdc->RxLength = USBD_LL_GetRxDataSize(pdev, epnum);
 
   /* USB data will be immediately processed, this allow next USB traffic being
   NAKed till the end of the application Xfer */
-
+#ifdef _IRS_COMPOSITE_
+  pdev->pClassSpecificInterfaceCDC->Receive(hcdc->RxBuffer, &hcdc->RxLength);
+#else
   ((USBD_CDC_ItfTypeDef *)pdev->pUserData)->Receive(hcdc->RxBuffer, &hcdc->RxLength);
+#endif // _IRS_COMPOSITE_
 
   return (uint8_t)USBD_OK;
 }
@@ -733,17 +790,31 @@ static uint8_t USBD_CDC_DataOut(USBD_HandleTypeDef *pdev, uint8_t epnum)
   * @param  pdev: device instance
   * @retval status
   */
-static uint8_t USBD_CDC_EP0_RxReady(USBD_HandleTypeDef *pdev)
+uint8_t USBD_CDC_EP0_RxReady(USBD_HandleTypeDef *pdev)
 {
+#ifdef _IRS_COMPOSITE_
+  USBD_CDC_HandleTypeDef* hcdc = pdev->pClassDataCDC;
+#else
   USBD_CDC_HandleTypeDef *hcdc = (USBD_CDC_HandleTypeDef *)pdev->pClassData;
+#endif // _IRS_COMPOSITE_
 
-  if ((pdev->pUserData != NULL) && (hcdc->CmdOpCode != 0xFFU))
+  if (
+#ifdef _IRS_COMPOSITE_
+    (pdev->pClassSpecificInterfaceCDC != NULL)
+#else
+    (pdev->pUserData != NULL)
+#endif // _IRS_COMPOSITE_
+    && 
+    (hcdc->CmdOpCode != 0xFFU))
   {
+#ifdef _IRS_COMPOSITE_
+  pdev->pClassSpecificInterfaceCDC->Control(hcdc->CmdOpCode, (uint8_t*) hcdc->data, (uint16_t) hcdc->CmdLength);
+#else
     ((USBD_CDC_ItfTypeDef *)pdev->pUserData)->Control(hcdc->CmdOpCode,
                                                       (uint8_t *)hcdc->data,
                                                       (uint16_t)hcdc->CmdLength);
+#endif // _IRS_COMPOSITE_
     hcdc->CmdOpCode = 0xFFU;
-
   }
 
   return (uint8_t)USBD_OK;
@@ -818,7 +889,11 @@ uint8_t USBD_CDC_RegisterInterface(USBD_HandleTypeDef *pdev,
     return (uint8_t)USBD_FAIL;
   }
 
+#ifdef _IRS_COMPOSITE_
+  pdev->pClassSpecificInterfaceCDC = fops;
+#else
   pdev->pUserData = fops;
+#endif // _IRS_COMPOSITE_
 
   return (uint8_t)USBD_OK;
 }
@@ -832,7 +907,11 @@ uint8_t USBD_CDC_RegisterInterface(USBD_HandleTypeDef *pdev,
 uint8_t USBD_CDC_SetTxBuffer(USBD_HandleTypeDef *pdev,
                              uint8_t *pbuff, uint32_t length)
 {
+#ifdef _IRS_COMPOSITE_
+  USBD_CDC_HandleTypeDef* hcdc = pdev->pClassDataCDC;
+#else
   USBD_CDC_HandleTypeDef *hcdc = (USBD_CDC_HandleTypeDef *)pdev->pClassData;
+#endif // _IRS_COMPOSITE_
 
   hcdc->TxBuffer = pbuff;
   hcdc->TxLength = length;
@@ -849,7 +928,11 @@ uint8_t USBD_CDC_SetTxBuffer(USBD_HandleTypeDef *pdev,
   */
 uint8_t USBD_CDC_SetRxBuffer(USBD_HandleTypeDef *pdev, uint8_t *pbuff)
 {
+#ifdef _IRS_COMPOSITE_
+  USBD_CDC_HandleTypeDef* hcdc = pdev->pClassDataCDC;
+#else
   USBD_CDC_HandleTypeDef *hcdc = (USBD_CDC_HandleTypeDef *)pdev->pClassData;
+#endif // _IRS_COMPOSITE_
 
   hcdc->RxBuffer = pbuff;
 
@@ -864,13 +947,18 @@ uint8_t USBD_CDC_SetRxBuffer(USBD_HandleTypeDef *pdev, uint8_t *pbuff)
   */
 uint8_t USBD_CDC_TransmitPacket(USBD_HandleTypeDef *pdev)
 {
-  USBD_CDC_HandleTypeDef *hcdc = (USBD_CDC_HandleTypeDef *)pdev->pClassData;
   USBD_StatusTypeDef ret = USBD_BUSY;
+
+#ifdef _IRS_COMPOSITE_
+  USBD_CDC_HandleTypeDef* hcdc = pdev->pClassDataCDC;
+#else
+  USBD_CDC_HandleTypeDef *hcdc = (USBD_CDC_HandleTypeDef *)pdev->pClassData;
 
   if (pdev->pClassData == NULL)
   {
     return (uint8_t)USBD_FAIL;
   }
+#endif // _IRS_COMPOSITE_
 
   if (hcdc->TxState == 0U)
   {
@@ -898,12 +986,20 @@ uint8_t USBD_CDC_TransmitPacket(USBD_HandleTypeDef *pdev)
   */
 uint8_t USBD_CDC_ReceivePacket(USBD_HandleTypeDef *pdev)
 {
+#ifdef _IRS_COMPOSITE_
+  USBD_CDC_HandleTypeDef* hcdc = pdev->pClassDataCDC;
+
+  if (pdev->pClassDataCDC == NULL) {
+    return (uint8_t)USBD_FAIL;
+  }
+#else
   USBD_CDC_HandleTypeDef *hcdc = (USBD_CDC_HandleTypeDef *)pdev->pClassData;
 
   if (pdev->pClassData == NULL)
   {
     return (uint8_t)USBD_FAIL;
   }
+#endif // _IRS_COMPOSITE_
 
   if (pdev->dev_speed == USBD_SPEED_HIGH)
   {

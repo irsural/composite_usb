@@ -64,20 +64,26 @@ USBD_DescriptorsTypeDef HID_Desc = {
   #pragma data_alignment=4   
 #endif
 __ALIGN_BEGIN uint8_t USBD_HID_DeviceDesc[USB_LEN_DEV_DESC] __ALIGN_END = {
-  0x12,                       /* bLength */
+  USB_DEVICE_DESC_SIZE,       /* bLength */
   USB_DESC_TYPE_DEVICE,       /* bDescriptorType */
-  0x00,                       /* bcdUSB */
-  0x02,
-  0x00,                       /* bDeviceClass */
-  0x00,                       /* bDeviceSubClass */
-  0x00,                       /* bDeviceProtocol */
+  LOBYTE(USB_BCD),            /* bcdUSB */
+  HIBYTE(USB_BCD),
+#ifdef _IRS_COMPOSITE_
+  0xEF,                       /* bDeviceClass */
+  0x02,                       /* bDeviceSubClass */
+  0x01,                       /* bDeviceProtocol */
+#else
+  0x00,
+  0x00,
+  0x00,
+#endif // _IRS_COMPOSITE_USB_
   USB_MAX_EP0_SIZE,           /* bMaxPacketSize */
   LOBYTE(USBD_HID_VID),           /* idVendor */
   HIBYTE(USBD_HID_VID),           /* idVendor */
   LOBYTE(USBD_HID_PID),           /* idVendor */
   HIBYTE(USBD_HID_PID),           /* idVendor */
-  0x00,                       /* bcdDevice rel. 2.00 */
-  0x02,
+  LOBYTE(USB_BCD),                       /* bcdDevice rel. 2.00 */
+  HIBYTE(USB_BCD),
   USBD_IDX_MFC_STR,           /* Index of manufacturer string */
   USBD_IDX_PRODUCT_STR,       /* Index of product string */
   USBD_IDX_SERIAL_STR,        /* Index of serial number string */

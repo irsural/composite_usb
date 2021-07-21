@@ -36,6 +36,9 @@
 #define USBD_SELF_POWERED                     1
 #define USBD_DEBUG_LEVEL                      0
 
+#define USB_DEVICE_DESC_SIZE 0x12
+#define USB_BCD 0x0200
+
 /* Exported macro ------------------------------------------------------------*/
 /* Memory management macros */
 /** Alias for memory allocation. */

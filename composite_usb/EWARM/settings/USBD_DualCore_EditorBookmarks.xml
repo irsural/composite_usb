@@ -4,4 +4,24 @@
         <path>C:\Users\504\Desktop\STM32Cube_FW_H7_V1.8.0\Projects\STM32H743I-EVAL\Applications\USB_Device\DualCore_Standalone\Src\usbd_conf.c</path>
         <row>322</row>
     </bookmark>
+    <bookmark>
+        <path>C:\Users\504\Desktop\composite_usb\composite_usb\Middlewares\ST\STM32_USB_Device_Library\Core\Inc\usbd_core.h</path>
+        <row>94</row>
+    </bookmark>
+    <bookmark>
+        <path>C:\Users\504\Desktop\composite_usb\composite_usb\Middlewares\ST\STM32_USB_Device_Library\Core\Src\usbd_ioreq.c</path>
+        <row>86</row>
+    </bookmark>
+    <bookmark>
+        <path>C:\Users\504\Desktop\composite_usb\mxsrclib\irscompositeusb.h</path>
+        <row>75</row>
+    </bookmark>
+    <bookmark>
+        <path>C:\Users\504\Desktop\composite_usb\mxsrclib\irscompositeusb.h</path>
+        <row>23</row>
+    </bookmark>
+    <bookmark>
+        <path>C:\Users\504\Desktop\composite_usb\mxsrclib\irscompositeusb.h</path>
+        <row>70</row>
+    </bookmark>
 </userBookmarks>

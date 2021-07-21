@@ -55,7 +55,7 @@ UART_HandleTypeDef UartHandle;
 /* TIM handler declaration */
 TIM_HandleTypeDef TimHandle;
 /* USB handler declaration */
-extern USBD_HandleTypeDef USBD_Device_HS;
+extern USBD_HandleTypeDef UsbDeviceFS;
 
 /* Private function prototypes ----------------------------------------------- */
 
@@ -116,8 +116,8 @@ static int8_t CDC_Itf_Init(void)
   }
 
   /* ##-5- Set Application Buffers ############################################ */
-  USBD_CDC_SetTxBuffer(&USBD_Device_HS, UserTxBuffer, 0);
-  USBD_CDC_SetRxBuffer(&USBD_Device_HS, UserRxBuffer);
+  USBD_CDC_SetTxBuffer(&UsbDeviceFS, UserTxBuffer, 0);
+  USBD_CDC_SetRxBuffer(&UsbDeviceFS, UserRxBuffer);
 
   return (USBD_OK);
 }
@@ -230,10 +230,10 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef * htim)
 
     buffptr = UserTxBufPtrOut;
 
-    USBD_CDC_SetTxBuffer(&USBD_Device_HS, (uint8_t *) & UserTxBuffer[buffptr],
+    USBD_CDC_SetTxBuffer(&UsbDeviceFS, (uint8_t *) & UserTxBuffer[buffptr],
                          buffsize);
 
-    if (USBD_CDC_TransmitPacket(&USBD_Device_HS) == USBD_OK)
+    if (USBD_CDC_TransmitPacket(&UsbDeviceFS) == USBD_OK)
     {
       UserTxBufPtrOut += buffsize;
       if (UserTxBufPtrOut == APP_RX_DATA_SIZE)
@@ -277,7 +277,7 @@ static int8_t CDC_Itf_Receive(uint8_t * Buf, uint32_t * Len)
 {
   SCB_CleanDCache_by_Addr((uint32_t *)Buf, *Len);
 
-  // Здесь должна быть обработка полученных пакетов
+  // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
   
   HAL_UART_Transmit_DMA(&UartHandle, Buf, *Len);
   return (USBD_OK);
@@ -301,14 +301,14 @@ int8_t CDC_TransmitCplt(uint8_t *Buf, uint32_t *Len, uint8_t epnum)
   UNUSED(epnum);
 
   uint8_t result = USBD_OK;
-  USBD_CDC_HandleTypeDef *hcdc = (USBD_CDC_HandleTypeDef*)USBD_Device_HS.pClassData;
+  USBD_CDC_HandleTypeDef *hcdc = (USBD_CDC_HandleTypeDef*)UsbDeviceFS.pClassData;
 
   if (hcdc->TxState != 0){
     return USBD_BUSY;
   }
 
-  USBD_CDC_SetTxBuffer(&USBD_Device_HS, Buf, *Len);
-  result = USBD_CDC_TransmitPacket(&USBD_Device_HS);
+  USBD_CDC_SetTxBuffer(&UsbDeviceFS, Buf, *Len);
+  result = USBD_CDC_TransmitPacket(&UsbDeviceFS);
   
   return result;
 }
@@ -323,7 +323,7 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef * huart)
 {
   /* Initiate next USB packet transfer once UART completes transfer
    * (transmitting data over Tx line) */
-  USBD_CDC_ReceivePacket(&USBD_Device_HS);
+  USBD_CDC_ReceivePacket(&UsbDeviceFS);
 }
 
 /**

@@ -28,6 +28,10 @@ extern "C" {
 /* Includes ------------------------------------------------------------------*/
 #include "usbd_conf.h"
 
+#ifndef _IRS_COMPOSITE_
+#define _IRS_COMPOSITE_
+#endif // _IRS_COMPOSITE_
+
 /** @addtogroup STM32_USBD_DEVICE_LIBRARY
   * @{
   */
@@ -264,6 +268,16 @@ typedef struct
   uint16_t bInterval;
 } USBD_EndpointTypeDef;
 
+#ifndef _IRS_COMPOSITE_
+#define _IRS_COMPOSITE_
+#endif // _IRS_COMPOSITE_
+
+#ifdef _IRS_COMPOSITE_
+struct _USBD_CDC_HandleTypeDef;
+typedef struct _USBD_CDC_HandleTypeDef USBD_CDC_HandleTypeDef;
+typedef struct _USBD_CDC_Itf USBD_CDC_ItfTypeDef;
+#endif // _IRS_COMPOSITE_
+
 /* USB Device handle structure */
 typedef struct _USBD_HandleTypeDef
 {
@@ -287,11 +301,18 @@ typedef struct _USBD_HandleTypeDef
   USBD_SetupReqTypedef    request;
   USBD_DescriptorsTypeDef *pDesc;
   USBD_ClassTypeDef       *pClass;
+
   void                    *pClassData;
   void                    *pUserData;
   void                    *pData;
   void                    *pBosDesc;
   void                    *pConfDesc;
+
+#ifdef _IRS_COMPOSITE_
+  USBD_CDC_HandleTypeDef* pClassDataCDC;
+  const USBD_CDC_ItfTypeDef* pClassSpecificInterfaceCDC;
+#endif // _IRS_COMPOSITE_
+
 } USBD_HandleTypeDef;
 
 /**
