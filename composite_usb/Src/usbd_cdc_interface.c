@@ -75,7 +75,7 @@ USBD_CDC_ItfTypeDef USBD_CDC_fops = {
   * @param  None
   * @retval Result of the operation: USBD_OK if all operations are OK else USBD_FAIL
   */
-static int8_t CDC_Itf_Init(void)
+int8_t CDC_Itf_Init(void)
 {
   /* ##-1- Configure the UART peripheral ###################################### */
   /* Put the USART peripheral in the Asynchronous mode (UART Mode) */
@@ -128,7 +128,7 @@ static int8_t CDC_Itf_Init(void)
   * @param  None
   * @retval Result of the operation: USBD_OK if all operations are OK else USBD_FAIL
   */
-static int8_t CDC_Itf_DeInit(void)
+int8_t CDC_Itf_DeInit(void)
 {
   /* DeInitialize the UART peripheral */
   if (HAL_UART_DeInit(&UartHandle) != HAL_OK)
@@ -147,7 +147,7 @@ static int8_t CDC_Itf_DeInit(void)
   * @param  Len: Number of data to be sent (in bytes)
   * @retval Result of the operation: USBD_OK if all operations are OK else USBD_FAIL
   */
-static int8_t CDC_Itf_Control(uint8_t cmd, uint8_t * pbuf, uint16_t length)
+int8_t CDC_Itf_Control(uint8_t cmd, uint8_t * pbuf, uint16_t length)
 {
   switch (cmd)
   {
@@ -273,12 +273,10 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef * huart)
   * @param  Len: Number of data received (in bytes)
   * @retval Result of the operation: USBD_OK if all operations are OK else USBD_FAIL
   */
-static int8_t CDC_Itf_Receive(uint8_t * Buf, uint32_t * Len)
+int8_t CDC_Itf_Receive(uint8_t * Buf, uint32_t * Len)
 {
   SCB_CleanDCache_by_Addr((uint32_t *)Buf, *Len);
 
-  // ����� ������ ���� ��������� ���������� �������
-  
   HAL_UART_Transmit_DMA(&UartHandle, Buf, *Len);
   return (USBD_OK);
 }
@@ -301,7 +299,7 @@ int8_t CDC_TransmitCplt(uint8_t *Buf, uint32_t *Len, uint8_t epnum)
   UNUSED(epnum);
 
   uint8_t result = USBD_OK;
-  USBD_CDC_HandleTypeDef *hcdc = (USBD_CDC_HandleTypeDef*)UsbDeviceFS.pClassData;
+  USBD_CDC_HandleTypeDef *hcdc = (USBD_CDC_HandleTypeDef*)UsbDeviceFS.pClassDataCDC;
 
   if (hcdc->TxState != 0){
     return USBD_BUSY;
@@ -333,7 +331,7 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef * huart)
   * @retval None
   * @note   When a configuration is not supported, a default value is used.
   */
-static void ComPort_Config(void)
+void ComPort_Config(void)
 {
   if (HAL_UART_DeInit(&UartHandle) != HAL_OK)
   {
@@ -417,7 +415,7 @@ static void ComPort_Config(void)
   * @param  None.
   * @retval None
   */
-static void TIM_Config(void)
+void TIM_Config(void)
 {
   /* Set TIMx instance */
   TimHandle.Instance = TIMx;

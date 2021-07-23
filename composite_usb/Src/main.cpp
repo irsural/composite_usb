@@ -31,6 +31,11 @@
 
 #include "composite_device.h"
 
+extern const uint16_t USB_HID_CDC_CONFIG_DESC_SIZ;
+extern uint8_t USBD_HID_CDC_CfgDesc[];
+
+extern int nnn;
+
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
@@ -42,8 +47,8 @@ uint8_t HID_Buffer[4];
 BSP_IO_Init_t init;
 /* Private function prototypes -----------------------------------------------*/
 static void SystemClock_Config();
-static void Toggle_Leds();
-static void GetPointerData(uint8_t *pbuf);
+//static void Toggle_Leds();
+//static void GetPointerData(uint8_t *pbuf);
 static void CPU_CACHE_Enable();
 
 /* Private functions ---------------------------------------------------------*/
@@ -55,6 +60,11 @@ static void CPU_CACHE_Enable();
   */
 int main(void)
 {
+  #define TotalLengthPos1 2
+  #define TotalLengthPos2 3
+  USBD_HID_CDC_CfgDesc[TotalLengthPos1] = LOBYTE(USB_HID_CDC_CONFIG_DESC_SIZ);
+  USBD_HID_CDC_CfgDesc[TotalLengthPos2] = HIBYTE(USB_HID_CDC_CONFIG_DESC_SIZ);
+
   /* Enable the CPU Cache */
   CPU_CACHE_Enable();
 
@@ -84,38 +94,19 @@ int main(void)
 
   HAL_PWREx_EnableUSBVoltageDetector();
 
-//   /* Init CDC Application */
-  // USBD_Init(&USBD_Device_HS, &VCP_Desc, 1);
-
-//   /* Init HID Application */
-// //  USBD_Init(&USBD_Device_FS, &HID_Desc, 0);
-
-//   /* Add Supported Classes */
-// //  USBD_RegisterClass(&USBD_Device_FS, &USBD_HID);
-//   USBD_RegisterClass(&USBD_Device_HS, USBD_CDC_CLASS);
-
-//   /* Add CDC Interface Class */
-//   USBD_CDC_RegisterInterface(&USBD_Device_HS, &USBD_CDC_fops);
-
-//   /* Start Device Process */
-// //  USBD_Start(&USBD_Device_FS);
-//   USBD_Start(&USBD_Device_HS);
-
-//   char* message = "Hello\r\n";
-//   uint32_t size_message = 7;
-
-//   /* Run Application (Interrupt mode) */
-//   while (1) {
-//     CDC_TransmitCplt((uint8_t*) message, &size_message, 0);
-// //    (void)USBD_CtlSendData(&USBD_Device_HS, (uint8_t*) message, size_message);
-//   }
-
-  USBD_Init(&UsbDeviceFS, &HID_Desc, 0);
+  USBD_Init(&UsbDeviceFS, &VCP_Desc, 0);
   USBD_RegisterClass(&UsbDeviceFS, &USBD_HID_CDC_ClassDriver);
   USBD_CDC_RegisterInterface(&UsbDeviceFS, &USBD_CDC_fops);
   USBD_Start(&UsbDeviceFS);
 
-  while (1) {} 
+  // int8_t CDC_TransmitCplt(uint8_t *Buf, uint32_t *Len, uint8_t epnum)
+  
+  uint8_t* str = (uint8_t*)"Hello";
+  uint32_t* len = (uint32_t*)strlen((char*)str);
+  
+  while (1) {
+    CDC_TransmitCplt(str, len, 0);
+  } 
 }
 
 

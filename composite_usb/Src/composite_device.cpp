@@ -83,39 +83,38 @@ USBD_ClassTypeDef USBD_HID_CDC_ClassDriver =
 	NULL, //USBD_HID_CDC_IsoINIncomplete,
 	NULL, //USBD_HID_CDC_IsoOutIncomplete,
 	USBD_HID_CDC_GetCfgDesc,
+	USBD_HID_CDC_GetCfgDesc,
+	USBD_HID_CDC_GetCfgDesc,
 	USBD_HID_CDC_GetDeviceQualifierDesc,
 };
 
 #if defined ( __ICCARM__ ) /*!< IAR Compiler */
 #pragma data_alignment=4
 #endif
-
-#define USB_HID_CDC_CONFIG_DESC_SIZ 100
-
 /* USB HID+CDC device Configuration Descriptor */
-static uint8_t USBD_HID_CDC_CfgDesc[USB_HID_CDC_CONFIG_DESC_SIZ] =
+__ALIGN_BEGIN uint8_t USBD_HID_CDC_CfgDesc[] __ALIGN_END =
 {
 	USB_CONFIG_DESC_SIZE,    /* bLength: Configuation Descriptor size */
 	USB_DESC_TYPE_CONFIGURATION, /* bDescriptorType: Configuration */
-	USB_HID_CDC_CONFIG_DESC_SIZ, /* wTotalLength: Bytes returned */
+	0x00, /* wTotalLength: Bytes returned */
 	0x00,
-	0x03,         /*bNumInterfaces: 3 interface*/
+	USB_NUM_INTERFACES,         /*bNumInterfaces: 2 interface*/
 	0x01,         /*bConfigurationValue: Configuration value*/
-	0x02,         /*iConfiguration: Index of string descriptor describing the configuration*/
-	0xE0,         /*bmAttributes: bus powered and Supports Remote Wakeup */
+	0x00,         /*iConfiguration: Index of string descriptor describing the configuration*/
+	0xC0,         /*bmAttributes: bus powered and Supports Remote Wakeup */
 	0x32,         /*MaxPower 100 mA: this current is used for detecting Vbus*/
 	/* 09 bytes */
 
-	/********************  HID Interface ********************/
-	0x09,   /* bLength: Interface Descriptor size */
-	USB_DESC_TYPE_INTERFACE,   /* bDescriptorType: */
-	HID_INTERFACE_IDX,   /* bInterfaceNumber: Number of Interface */
-	0x00,   /* bAlternateSetting: Alternate setting */
-	0x01,   /* bNumEndpoints*/
-	HID_INTERFACE_CLASS,   /* bInterfaceClass: HID Class */
-	HID_INTERFACE_SUBCLASS,   /* bInterfaceSubClass : SCSI transparent command set*/
-	HID_INTERFACE_PROTOCOL,   /* nInterfaceProtocol */
-	HID_IDX_INTERFACE_STR,	/* iInterface: */
+	 /************** Descriptor of Joystick Mouse interface ****************/
+	0x09,                                               /* bLength: Interface Descriptor size */
+	USB_DESC_TYPE_INTERFACE,                            /* bDescriptorType: Interface descriptor type */
+	0x00,                                               /* bInterfaceNumber: Number of Interface */
+	0x00,                                               /* bAlternateSetting: Alternate setting */
+	0x01,                                               /* bNumEndpoints */
+	0x03,                                               /* bInterfaceClass: HID */
+	0x01,                                               /* bInterfaceSubClass : 1=BOOT, 0=no boot */
+	0x02,                                               /* nInterfaceProtocol : 0=none, 1=keyboard, 2=mouse */
+	0x00,                                               /* iInterface: Index of string descriptor */
 	/* 09 bytes */
 
 	/******************** Descriptor of Joystick Mouse HID ********************/
@@ -126,8 +125,8 @@ static uint8_t USBD_HID_CDC_CfgDesc[USB_HID_CDC_CONFIG_DESC_SIZ] =
 	0x00,                                               /* bCountryCode: Hardware target country */
 	0x01,                                               /* bNumDescriptors: Number of HID class descriptors to follow */
 	0x22,                                               /* bDescriptorType */
-	HID_MOUSE_REPORT_DESC_SIZE,                         /* wItemLength: Total length of Report descriptor */
-	0x00,
+	LOBYTE(IRS_HID_MOUSE_REPORT_DESC_SIZE),                         /* wItemLength: Total length of Report descriptor */
+	HIBYTE(IRS_HID_MOUSE_REPORT_DESC_SIZE),
 	/* 09 bytes */
 
 	/******************** Descriptor of Mouse endpoint ********************/
@@ -142,7 +141,6 @@ static uint8_t USBD_HID_CDC_CfgDesc[USB_HID_CDC_CONFIG_DESC_SIZ] =
 
 	/******** IAD should be positioned just before the CDC interfaces ******
 			 IAD to associate the two CDC interfaces */
-
 	0x08, /* bLength */
 	0x0B, /* bDescriptorType */
 	CDC_INTERFACE_IDX, /* bFirstInterface */
@@ -224,7 +222,7 @@ static uint8_t USBD_HID_CDC_CfgDesc[USB_HID_CDC_CONFIG_DESC_SIZ] =
 	/*Endpoint OUT Descriptor*/
 	0x07,   /* bLength: Endpoint Descriptor size */
 	USB_DESC_TYPE_ENDPOINT,        /* bDescriptorType: Endpoint */
-	CDC_OUT_EP,                    /* bEndpointAddress */
+	0x05,                    /* bEndpointAddress */
 	0x02,                          /* bmAttributes: Bulk */
 	LOBYTE(CDC_DATA_PACKET_SIZE),  /* wMaxPacketSize: */
 	HIBYTE(CDC_DATA_PACKET_SIZE),
@@ -234,20 +232,23 @@ static uint8_t USBD_HID_CDC_CfgDesc[USB_HID_CDC_CONFIG_DESC_SIZ] =
 	/*Endpoint IN Descriptor*/
 	0x07,   /* bLength: Endpoint Descriptor size */
 	USB_DESC_TYPE_ENDPOINT,        /* bDescriptorType: Endpoint */
-	CDC_IN_EP,                     /* bEndpointAddress */
+	IRS_CDC_IN_EP,                     /* bEndpointAddress */
 	0x02,                          /* bmAttributes: Bulk */
 	LOBYTE(CDC_DATA_PACKET_SIZE),  /* wMaxPacketSize: */
 	HIBYTE(CDC_DATA_PACKET_SIZE),
 	0x00,                          /* bInterval */
 	/* 07 bytes */
-
 };
+
+extern const uint16_t USB_HID_CDC_CONFIG_DESC_SIZ = 
+  sizeof(USBD_HID_CDC_CfgDesc);
+//#define USB_HID_CDC_CONFIG_DESC_SIZ sizeof(USBD_HID_CDC_CfgDesc)
 
 #if defined ( __ICCARM__ ) /*!< IAR Compiler */
 #pragma data_alignment=4
 #endif
 /* USB Standard Device Descriptor */
-static uint8_t USBD_HID_CDC_DeviceQualifierDesc[USB_LEN_DEV_QUALIFIER_DESC] =
+uint8_t USBD_HID_CDC_DeviceQualifierDesc[USB_LEN_DEV_QUALIFIER_DESC] =
 {
 	USB_LEN_DEV_QUALIFIER_DESC,
 	USB_DESC_TYPE_DEVICE_QUALIFIER,
@@ -280,12 +281,12 @@ static uint8_t  USBD_HID_CDC_Init (USBD_HandleTypeDef *pdev,
 								   uint8_t cfgidx)
 {
 	/* HID initialization */
-	uint8_t ret = USBD_HID_Init (pdev, cfgidx);
+	uint8_t ret = USBD_HID_Init(pdev, cfgidx);
 	if(ret != 0)
 		return ret;
 
 	/* CDC initialization */
-	ret = USBD_CDC_Init (pdev, cfgidx);
+	ret = USBD_CDC_Init(pdev, cfgidx);
 	if(ret != 0)
 		return ret;
 

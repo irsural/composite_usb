@@ -84,14 +84,14 @@ extern USBD_CDC_ItfTypeDef  USBD_CDC_fops;
 extern "C" {
 #endif // __cplusplus
 
-static int8_t CDC_Itf_Init(void);
-static int8_t CDC_Itf_DeInit(void);
-static int8_t CDC_Itf_Control(uint8_t cmd, uint8_t * pbuf, uint16_t length);
-static int8_t CDC_Itf_Receive(uint8_t * pbuf, uint32_t * Len);
+int8_t CDC_Itf_Init(void);
+int8_t CDC_Itf_DeInit(void);
+int8_t CDC_Itf_Control(uint8_t cmd, uint8_t * pbuf, uint16_t length);
+int8_t CDC_Itf_Receive(uint8_t * pbuf, uint32_t * Len);
 int8_t CDC_TransmitCplt(uint8_t *pbuf, uint32_t *Len, uint8_t epnum);
-static void Error_Handler(void);
-static void ComPort_Config(void);
-static void TIM_Config(void);
+void Error_Handler(void);
+void ComPort_Config(void);
+void TIM_Config(void);
 
 #ifdef __cplusplus
 }

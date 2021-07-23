@@ -24,8 +24,8 @@
 
 /* Private typedef ----------------------------------------------------------- */
 /* Private define ------------------------------------------------------------ */
-#define USBD_VID                      0x0483
-#define USBD_PID                      0x5740
+#define USBD_VID                      0x0484
+#define USBD_PID                      0x5710
 #define USBD_LANGID_STRING            0x409
 #define USBD_MANUFACTURER_STRING      "STMicroelectronics"
 #define USBD_PRODUCT_HS_STRING        "STM32 Virtual ComPort in HS Mode"
@@ -75,9 +75,9 @@ __ALIGN_BEGIN uint8_t USBD_DeviceDesc[USB_LEN_DEV_DESC] __ALIGN_END = {
   USB_DESC_TYPE_DEVICE,         /* bDescriptorType */
   0x00,                         /* bcdUSB */
   0x02,
-  0x00,                         /* bDeviceClass */
-  0x00,                         /* bDeviceSubClass */
-  0x00,                         /* bDeviceProtocol */
+  0xEF,                         /* bDeviceClass */
+  0x02,                         /* bDeviceSubClass */
+  0x01,                         /* bDeviceProtocol */
   USB_MAX_EP0_SIZE,             /* bMaxPacketSize */
   LOBYTE(USBD_VID),             /* idVendor */
   HIBYTE(USBD_VID),             /* idVendor */
